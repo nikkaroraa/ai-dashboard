@@ -47,5 +47,43 @@ export function highlightKeywords(text: string, keywords: string[]): string {
 }
 
 export function stripHtml(html: string): string {
-  return html.replace(/<[^>]*>/g, " ").replace(/&[^;]+;/g, " ").replace(/\s+/g, " ").trim();
+  if (!html) return "";
+
+  const withoutComments = html.replace(/<!--[\s\S]*?-->/g, " ");
+  const withoutTags = withoutComments.replace(/<[^>]*>/g, " ");
+  const decoded = decodeHtmlEntities(withoutTags);
+  const normalized = decoded.replace(/\s+/g, " ").trim();
+
+  return truncateForCard(normalized);
+}
+
+const HTML_ENTITY_MAP: Record<string, string> = {
+  amp: "&",
+  lt: "<",
+  gt: ">",
+  quot: '"',
+  apos: "'",
+  "#039": "'",
+  nbsp: " ",
+};
+
+function decodeHtmlEntities(input: string): string {
+  return input
+    .replace(/&#x([0-9a-fA-F]+);/g, (_match, hex) => {
+      const codePoint = Number.parseInt(hex, 16);
+      return Number.isNaN(codePoint) ? "" : String.fromCodePoint(codePoint);
+    })
+    .replace(/&#(\d+);/g, (_match, dec) => {
+      const codePoint = Number.parseInt(dec, 10);
+      return Number.isNaN(codePoint) ? "" : String.fromCodePoint(codePoint);
+    })
+    .replace(/&([a-zA-Z#0-9]+);/g, (match, name) => {
+      const key = name.toLowerCase();
+      return HTML_ENTITY_MAP[key] ?? match;
+    });
+}
+
+function truncateForCard(text: string, maxLength = 250): string {
+  if (text.length <= maxLength) return text;
+  return `${text.slice(0, maxLength - 3).trimEnd()}...`;
 }
