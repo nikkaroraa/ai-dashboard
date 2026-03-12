@@ -1,0 +1,9 @@
+@import "tailwindcss";
+
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body { @apply bg-zinc-950 text-zinc-100 antialiased; }
+
+mark.keyword {
+  @apply rounded px-1 py-0.5 bg-emerald-500/20 text-emerald-300;
+}
